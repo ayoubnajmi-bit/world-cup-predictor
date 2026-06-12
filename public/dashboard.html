@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mes Pronostics — CdM 2026</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{min-height:100vh;background:#0a0a0f;color:#fff;font-family:'Segoe UI',system-ui,sans-serif}
+  .bg{position:fixed;inset:0;background:radial-gradient(ellipse at 20% 0%,rgba(245,158,11,.06) 0%,transparent 50%);pointer-events:none;z-index:0}
+  nav{background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.07);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px)}
+  .nav-logo{font-weight:700;font-size:16px;color:#f59e0b}
+  .nav-links{display:flex;gap:4px}
+  .nav-link{padding:8px 16px;border-radius:8px;color:#9ca3af;font-size:14px;font-weight:500;text-decoration:none;transition:.2s}
+  .nav-link:hover,.nav-link.active{color:#fff;background:rgba(255,255,255,.07)}
+  .nav-right{display:flex;align-items:center;gap:12px}
+  .pseudo-badge{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:#f59e0b;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600}
+  .logout-btn{background:none;border:1px solid rgba(255,255,255,.12);color:#6b7280;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;transition:.2s}
+  .logout-btn:hover{border-color:rgba(239,68,68,.5);color:#f87171}
+  main{max-width:1100px;margin:0 auto;padding:32px 24px;position:relative;z-index:1}
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:36px}
+  .stat-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:20px;text-align:center}
+  .stat-card.gold{border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.06)}
+  .stat-value{font-size:32px;font-weight:800;color:#f59e0b}
+  .stat-label{font-size:12px;color:#6b7280;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+  .section-title{font-size:18px;font-weight:700;margin-bottom:20px}
+  .stage-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+  .stage-btn{padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.1);background:none;color:#9ca3af;cursor:pointer;font-size:13px;transition:.2s}
+  .stage-btn:hover,.stage-btn.active{border-color:#f59e0b;color:#f59e0b;background:rgba(245,158,11,.08)}
+  .matches-grid{display:flex;flex-direction:column;gap:14px}
+
+  /* MATCH CARD */
+  .match-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;transition:.2s}
+  .match-card:hover{border-color:rgba(255,255,255,.14)}
+  .match-card.finished{opacity:.75}
+  .match-card.has-pred{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.025)}
+  .match-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+  .match-stage{font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;background:rgba(255,255,255,.06);padding:3px 10px;border-radius:20px}
+  .match-date{font-size:12px;color:#6b7280}
+  .match-teams{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+  .team{flex:1;display:flex;align-items:center;gap:10px}
+  .team.away{justify-content:flex-end;flex-direction:row-reverse}
+  .team-name{font-weight:700;font-size:16px}
+  .vs-block{text-align:center;min-width:80px}
+  .vs{color:#6b7280;font-size:13px;font-weight:600}
+  .result-score{font-size:26px;font-weight:800;color:#f59e0b;line-height:1}
+  .result-live{font-size:11px;color:#22c55e;margin-top:2px;animation:blink 1.5s infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+  /* PRED FORM */
+  .pred-form{border-top:1px solid rgba(255,255,255,.06);padding-top:16px}
+  .pred-mode-tabs{display:flex;gap:8px;margin-bottom:14px}
+  .mode-btn{flex:1;padding:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#9ca3af;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;transition:.2s;text-align:center}
+  .mode-btn:hover{border-color:rgba(255,255,255,.2);color:#fff}
+  .mode-btn.active-outcome{border-color:#3b82f6;background:rgba(59,130,246,.1);color:#93c5fd}
+  .mode-btn.active-score{border-color:#f59e0b;background:rgba(245,158,11,.1);color:#f59e0b}
+  .mode-pts{font-size:10px;font-weight:700;display:block;margin-top:2px;opacity:.8}
+
+  /* OUTCOME BUTTONS */
+  .outcome-btns{display:flex;gap:8px;margin-bottom:14px}
+  .outcome-btn{flex:1;padding:12px 8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#9ca3af;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;transition:.2s;text-align:center}
+  .outcome-btn:hover{border-color:rgba(255,255,255,.2);color:#fff}
+  .outcome-btn.selected{border-color:#3b82f6;background:rgba(59,130,246,.15);color:#93c5fd}
+  .outcome-team{font-size:11px;color:#6b7280;display:block;margin-top:2px;font-weight:400}
+
+  /* SCORE INPUTS */
+  .score-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .score-input{width:56px;padding:10px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#fff;font-size:22px;font-weight:800;text-align:center;outline:none;transition:.2s}
+  .score-input:focus{border-color:#f59e0b;background:rgba(245,158,11,.08)}
+  .score-sep{color:#6b7280;font-weight:700;font-size:20px}
+  .score-team-label{font-size:12px;color:#6b7280;flex:1;text-align:center}
+
+  .submit-pred{width:100%;padding:11px;background:#f59e0b;color:#000;border:none;border-radius:10px;cursor:pointer;font-size:14px;font-weight:800;transition:.2s}
+  .submit-pred:hover{background:#d97706}
+  .submit-pred:disabled{opacity:.4;cursor:not-allowed}
+  .submit-pred.blue{background:#3b82f6;color:#fff}
+  .submit-pred.blue:hover{background:#2563eb}
+
+  /* PRED RESULT */
+  .pred-result{border-top:1px solid rgba(255,255,255,.06);padding-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .pred-label{font-size:13px;color:#9ca3af}
+  .pred-val{font-size:14px;font-weight:700;color:#e2e8f0}
+  .pts-badge{padding:5px 14px;border-radius:20px;font-size:13px;font-weight:700}
+  .pts-5{background:rgba(245,158,11,.2);color:#f59e0b;border:1px solid rgba(245,158,11,.4)}
+  .pts-2{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+  .pts-0{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2)}
+  .pts-pending{background:rgba(255,255,255,.06);color:#9ca3af;border:1px solid rgba(255,255,255,.1)}
+  .deadline-badge{font-size:11px;color:#f59e0b;background:rgba(245,158,11,.1);padding:3px 10px;border-radius:20px;border:1px solid rgba(245,158,11,.2)}
+  .closed-badge{font-size:12px;color:#6b7280;background:rgba(255,255,255,.05);padding:4px 12px;border-radius:20px}
+
+  .points-legend{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px 18px;margin-bottom:24px;display:flex;gap:20px;flex-wrap:wrap;align-items:center}
+  .legend-item{display:flex;align-items:center;gap:6px;font-size:13px;color:#9ca3af}
+  .legend-dot{width:8px;height:8px;border-radius:50%}
+
+  .empty-state{text-align:center;padding:60px 20px;color:#6b7280}
+  .empty-state .icon{font-size:48px;margin-bottom:12px}
+  .loader{text-align:center;padding:60px;color:#6b7280}
+  .toast{position:fixed;bottom:24px;right:24px;background:#1a1a2e;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 20px;font-size:14px;color:#fff;z-index:999;transform:translateY(100px);opacity:0;transition:.3s;max-width:300px}
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast.success{border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.1)}
+  .toast.error{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.1)}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<nav>
+  <div class="nav-logo">⚽ CdM 2026</div>
+  <div class="nav-links">
+    <a class="nav-link active" href="/dashboard.html">Pronostics</a>
+    <a class="nav-link" href="/leaderboard.html">Classement</a>
+  </div>
+  <div class="nav-right">
+    <span class="pseudo-badge" id="pseudoBadge">...</span>
+    <button class="logout-btn" onclick="logout()">Déconnexion</button>
+  </div>
+</nav>
+
+<main>
+  <div class="stats-grid">
+    <div class="stat-card gold"><div class="stat-value" id="statPoints">—</div><div class="stat-label">Mes Points</div></div>
+    <div class="stat-card"><div class="stat-value" id="statRank">—</div><div class="stat-label">Classement</div></div>
+    <div class="stat-card"><div class="stat-value" id="statPreds">—</div><div class="stat-label">Pronostics</div></div>
+    <div class="stat-card"><div class="stat-value" id="statScored">—</div><div class="stat-label">Scorés</div></div>
+  </div>
+
+  <div class="points-legend">
+    <strong style="color:#fff;font-size:13px">Barème :</strong>
+    <span class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>Score exact = <strong style="color:#f59e0b">5 pts</strong></span>
+    <span class="legend-item"><span class="legend-dot" style="background:#6ee7b7"></span>Bon vainqueur / Nul = <strong style="color:#6ee7b7">2 pts</strong></span>
+    <span class="legend-item"><span class="legend-dot" style="background:#f87171"></span>Mauvais = <strong style="color:#f87171">0 pt</strong></span>
+  </div>
+
+  <div class="section-title">⚽ Matchs</div>
+  <div class="stage-filter" id="stageFilter"></div>
+  <div class="matches-grid" id="matchesGrid">
+    <div class="loader">Chargement des matchs...</div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const token = localStorage.getItem('wc_token');
+  if (!token) window.location.href = '/';
+  document.getElementById('pseudoBadge').textContent = localStorage.getItem('wc_pseudo') || '';
+
+  let allMatches = [];
+  let currentStage = 'all';
+  // Mémorise le mode choisi par match: {matchId: 'outcome'|'score'}
+  const modes = {};
+  // Mémorise le outcome sélectionné: {matchId: 'H'|'D'|'A'}
+  const selectedOutcomes = {};
+
+  function logout() {
+    localStorage.clear();
+    window.location.href = '/';
+  }
+
+  function showToast(msg, type='success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = `toast show ${type}`;
+    setTimeout(() => t.className = 'toast', 3000);
+  }
+
+  function formatDate(ts) {
+    return new Date(ts * 1000).toLocaleDateString('fr-FR', {
+      weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'
+    });
+  }
+
+  function countdown(ts) {
+    const diff = ts - Math.floor(Date.now() / 1000);
+    if (diff <= 0) return null;
+    if (diff < 3600) return `${Math.floor(diff/60)} min`;
+    if (diff < 86400) return `${Math.floor(diff/3600)}h`;
+    return `${Math.floor(diff/86400)}j`;
+  }
+
+  async function loadStats() {
+    const r = await fetch('/api/matches/stats', { headers: { Authorization: `Bearer ${token}` } });
+    if (r.status === 401) { logout(); return; }
+    const d = await r.json();
+    document.getElementById('statPoints').textContent = d.points;
+    document.getElementById('statRank').textContent = `#${d.rank}/${d.total_players}`;
+    document.getElementById('statPreds').textContent = d.predictions_made;
+    document.getElementById('statScored').textContent = d.predictions_scored;
+  }
+
+  async function loadMatches() {
+    const r = await fetch('/api/matches', { headers: { Authorization: `Bearer ${token}` } });
+    if (r.status === 401) { logout(); return; }
+    allMatches = await r.json();
+    buildStageFilter();
+    renderMatches();
+  }
+
+  function buildStageFilter() {
+    const stages = ['all', ...new Set(allMatches.map(m => m.stage))];
+    document.getElementById('stageFilter').innerHTML = stages.map(s => `
+      <button class="stage-btn ${s === currentStage ? 'active' : ''}" onclick="filterStage('${s}')">
+        ${s === 'all' ? 'Tous' : s}
+      </button>`).join('');
+  }
+
+  function filterStage(stage) {
+    currentStage = stage;
+    buildStageFilter();
+    renderMatches();
+  }
+
+  function setMode(matchId, mode) {
+    modes[matchId] = mode;
+    renderMatches();
+  }
+
+  function setOutcome(matchId, outcome) {
+    selectedOutcomes[matchId] = outcome;
+    renderMatches();
+  }
+
+  function renderMatches() {
+    const list = currentStage === 'all' ? allMatches : allMatches.filter(m => m.stage === currentStage);
+    const el = document.getElementById('matchesGrid');
+
+    if (list.length === 0) {
+      el.innerHTML = `<div class="empty-state"><div class="icon">📅</div><p>Aucun match.<br>L'admin doit synchroniser les matchs.</p></div>`;
+      return;
+    }
+
+    el.innerHTML = list.map(m => {
+      const finished = m.status === 'FT' || (m.home_score !== null && m.status !== 'NS' && m.status !== '1H' && m.status !== '2H' && m.status !== 'HT');
+      const live = ['1H','2H','HT','ET','PEN'].includes(m.status);
+      const hasPred = m.has_prediction;
+      const mode = modes[m.id] || (hasPred ? m.pred_type : 'score');
+      const selOut = selectedOutcomes[m.id] || (hasPred ? m.pred_outcome : null);
+
+      // Score block
+      let scoreBlock = '';
+      if (m.home_score !== null) {
+        scoreBlock = `<div class="result-score">${m.home_score} — ${m.away_score}</div>${live ? '<div class="result-live">EN DIRECT</div>' : ''}`;
+      } else {
+        scoreBlock = `<div class="vs">VS</div>`;
+      }
+
+      // Pred section
+      let predHTML = '';
+
+      if (finished && m.home_score !== null) {
+        // Résultat affiché
+        if (hasPred) {
+          let predDisplay = '';
+          if (m.pred_type === 'outcome') {
+            const labels = { H: m.home_team, D: 'Nul', A: m.away_team };
+            predDisplay = `Vainqueur : <strong>${labels[m.pred_outcome] || m.pred_outcome}</strong>`;
+          } else {
+            predDisplay = `Score : <strong>${m.pred_home} — ${m.pred_away}</strong>`;
+          }
+          let ptsClass = m.pred_points === 5 ? 'pts-5' : m.pred_points === 2 ? 'pts-2' : 'pts-0';
+          let ptsLabel = m.pred_points === 5 ? '🎯 Score exact +5pts' : m.pred_points === 2 ? '✅ Bon résultat +2pts' : '❌ 0 point';
+          predHTML = `<div class="pred-result">
+            <span class="pred-label">${predDisplay}</span>
+            ${m.pred_points !== null
+              ? `<span class="pts-badge ${ptsClass}">${ptsLabel}</span>`
+              : `<span class="pts-badge pts-pending">⏳ En attente du calcul</span>`}
+          </div>`;
+        } else {
+          predHTML = `<div class="pred-result"><span class="closed-badge">Pas de pronostic pour ce match</span></div>`;
+        }
+      } else if (m.can_predict) {
+        const cd = countdown(m.match_date);
+
+        if (hasPred) {
+          // Pronostic déjà soumis — verrouillé
+          let predDisplay = '';
+          if (m.pred_type === 'outcome') {
+            const labels = { H: `Victoire ${m.home_team}`, D: 'Match nul', A: `Victoire ${m.away_team}` };
+            predDisplay = `<strong>${labels[m.pred_outcome] || m.pred_outcome}</strong>`;
+          } else {
+            predDisplay = `Score : <strong>${m.pred_home} — ${m.pred_away}</strong>`;
+          }
+          predHTML = `<div class="pred-form" style="background:rgba(16,185,129,.05);border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:12px;color:#6ee7b7;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">🔒 Pronostic verrouillé</div>
+            <div style="font-size:16px;color:#e2e8f0">${predDisplay}</div>
+            <div style="font-size:12px;color:#6b7280;margin-top:6px">Impossible de modifier après validation</div>
+          </div>`;
+        } else {
+          // Formulaire de saisie
+          const isScore = mode === 'score';
+          const btnClass = isScore ? 'submit-pred' : 'submit-pred blue';
+          predHTML = `<div class="pred-form">
+            <div class="pred-mode-tabs">
+              <button class="mode-btn ${!isScore ? 'active-outcome' : ''}" onclick="setMode(${m.id},'outcome')">
+                🏆 Vainqueur / Nul
+                <span class="mode-pts">+2 pts si correct</span>
+              </button>
+              <button class="mode-btn ${isScore ? 'active-score' : ''}" onclick="setMode(${m.id},'score')">
+                🎯 Score exact
+                <span class="mode-pts">+5 pts si exact · +2 pts bon résultat</span>
+              </button>
+            </div>
+
+            ${!isScore ? `
+            <div class="outcome-btns">
+              <button class="outcome-btn ${selOut==='H'?'selected':''}" onclick="setOutcome(${m.id},'H')">
+                1 — Victoire<span class="outcome-team">${m.home_team}</span>
+              </button>
+              <button class="outcome-btn ${selOut==='D'?'selected':''}" onclick="setOutcome(${m.id},'D')">
+                X — Nul<span class="outcome-team">Match nul</span>
+              </button>
+              <button class="outcome-btn ${selOut==='A'?'selected':''}" onclick="setOutcome(${m.id},'A')">
+                2 — Victoire<span class="outcome-team">${m.away_team}</span>
+              </button>
+            </div>
+            ` : `
+            <div class="score-row">
+              <span class="score-team-label">${m.home_team}</span>
+              <input class="score-input" type="number" min="0" max="20" id="h_${m.id}" placeholder="0">
+              <span class="score-sep">—</span>
+              <input class="score-input" type="number" min="0" max="20" id="a_${m.id}" placeholder="0">
+              <span class="score-team-label">${m.away_team}</span>
+            </div>
+            `}
+
+            <button class="${btnClass}" onclick="submitPred(${m.id})">✅ Valider mon pronostic</button>
+            ${cd ? `<div style="text-align:center;margin-top:8px"><span class="deadline-badge">⏱ Ferme dans ${cd}</span></div>` : ''}
+          </div>`;
+        }
+      } else {
+        predHTML = `<div class="pred-result"><span class="closed-badge">🔒 Pronostics fermés — match commencé</span></div>`;
+      }
+
+      return `<div class="match-card ${finished?'finished':''} ${hasPred&&!finished?'has-pred':''}">
+        <div class="match-meta">
+          <span class="match-stage">${m.stage}</span>
+          <span class="match-date">${formatDate(m.match_date)}</span>
+        </div>
+        <div class="match-teams">
+          <div class="team"><span class="team-name">${m.home_team}</span></div>
+          <div class="vs-block">${scoreBlock}</div>
+          <div class="team away"><span class="team-name">${m.away_team}</span></div>
+        </div>
+        ${predHTML}
+      </div>`;
+    }).join('');
+  }
+
+  async function submitPred(matchId) {
+    const match = allMatches.find(m => m.id === matchId);
+    const mode = modes[matchId] || 'score';
+    let body = { match_id: matchId, pred_type: mode };
+
+    if (mode === 'outcome') {
+      const outcome = selectedOutcomes[matchId];
+      if (!outcome) return showToast('Choisis un résultat (1 / X / 2)', 'error');
+      body.outcome = outcome;
+    } else {
+      const h = document.getElementById(`h_${matchId}`)?.value;
+      const a = document.getElementById(`a_${matchId}`)?.value;
+      if (h === '' || a === '' || h === undefined) return showToast('Entre un score pour les deux équipes', 'error');
+      body.home_score = parseInt(h);
+      body.away_score = parseInt(a);
+    }
+
+    const btn = document.querySelector(`button[onclick="submitPred(${matchId})"]`);
+    if (btn) btn.disabled = true;
+    try {
+      const r = await fetch('/api/predictions', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const d = await r.json();
+      if (!r.ok) showToast(d.error, 'error');
+      else {
+        showToast('Pronostic enregistré ! ⚽', 'success');
+        loadMatches();
+        loadStats();
+      }
+    } catch(e) { showToast('Erreur serveur', 'error'); }
+    if (btn) btn.disabled = false;
+  }
+
+  loadStats();
+  loadMatches();
+  setInterval(() => { loadStats(); loadMatches(); }, 60000);
+</script>
+</body>
+</html>

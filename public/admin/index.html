@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — CdM 2026</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{min-height:100vh;background:#0a0a0f;color:#fff;font-family:'Segoe UI',system-ui,sans-serif;font-size:14px}
+  nav{background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.07);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px}
+  .nav-logo{font-weight:700;color:#f59e0b;font-size:16px}
+  .admin-badge{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171;padding:4px 12px;border-radius:20px;font-size:12px}
+  main{max-width:1200px;margin:0 auto;padding:28px 24px}
+
+  /* LOGIN */
+  .login-box{max-width:360px;margin:80px auto;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:36px}
+  .login-box h1{text-align:center;color:#f59e0b;margin-bottom:8px}
+  .login-box p{text-align:center;color:#6b7280;font-size:13px;margin-bottom:24px}
+
+  /* TABS */
+  .tabs{display:flex;gap:4px;margin-bottom:24px;background:rgba(255,255,255,.03);padding:4px;border-radius:12px;width:fit-content}
+  .tab{padding:9px 20px;border:none;background:none;color:#9ca3af;border-radius:9px;cursor:pointer;font-size:14px;font-weight:500;transition:.2s}
+  .tab.active{background:#f59e0b;color:#000;font-weight:700}
+
+  /* STATS CARDS */
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px}
+  .s-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px;text-align:center}
+  .s-val{font-size:28px;font-weight:800;color:#f59e0b}
+  .s-lbl{font-size:11px;color:#6b7280;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+
+  /* SECTION */
+  .section{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:20px;margin-bottom:20px}
+  .section h2{font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;color:#e2e8f0}
+
+  /* INPUTS */
+  input,select{padding:9px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:9px;color:#fff;font-size:14px;outline:none;transition:.2s}
+  input:focus,select:focus{border-color:#f59e0b}
+  input::placeholder{color:#4b5563}
+  select option{background:#1a1a2e}
+
+  /* BUTTONS */
+  .btn{padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:.2s;white-space:nowrap}
+  .btn-yellow{background:#f59e0b;color:#000}
+  .btn-yellow:hover{background:#d97706}
+  .btn-green{background:rgba(16,185,129,.2);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+  .btn-green:hover{background:rgba(16,185,129,.3)}
+  .btn-red{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)}
+  .btn-red:hover{background:rgba(239,68,68,.25)}
+  .btn-blue{background:rgba(59,130,246,.2);color:#93c5fd;border:1px solid rgba(59,130,246,.3)}
+  .btn-blue:hover{background:rgba(59,130,246,.3)}
+  .btn-gray{background:rgba(255,255,255,.07);color:#9ca3af;border:1px solid rgba(255,255,255,.1)}
+  .btn-gray:hover{background:rgba(255,255,255,.12);color:#fff}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .btn-full{width:100%}
+  .btn-sm{padding:5px 10px;font-size:12px}
+
+  /* SYNC ROW */
+  .sync-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .sync-result{font-size:13px;padding:8px 14px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:8px;color:#6ee7b7;display:none}
+
+  /* ADD MATCH FORM */
+  .add-form{display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end}
+  @media(max-width:900px){.add-form{grid-template-columns:1fr 1fr}}
+
+  /* TABLE */
+  .tbl-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;min-width:600px}
+  th{text-align:left;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.07)}
+  td{padding:11px 12px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(255,255,255,.02)}
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+  .badge-ok{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.25)}
+  .badge-wait{background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.2)}
+  .badge-ft{background:rgba(16,185,129,.1);color:#6ee7b7}
+  .badge-ns{background:rgba(255,255,255,.06);color:#9ca3af}
+  .badge-live{background:rgba(239,68,68,.15);color:#f87171;animation:blink 1.5s infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+  .mini-inp{width:48px;padding:5px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:6px;color:#fff;font-size:14px;font-weight:700;text-align:center;outline:none}
+  .mini-inp:focus{border-color:#f59e0b}
+  .actions{display:flex;gap:6px;flex-wrap:wrap}
+  .msg{padding:10px 14px;border-radius:8px;font-size:13px;margin-top:12px;display:none}
+  .msg.error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5}
+  .msg.success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#6ee7b7}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center}
+  .modal-overlay.open{display:flex}
+  .modal{background:#111118;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:28px;width:100%;max-width:420px;position:relative}
+  .modal h3{font-size:16px;font-weight:700;margin-bottom:20px;color:#f59e0b}
+  .modal .form-group{margin-bottom:14px}
+  .modal label{display:block;font-size:12px;color:#9ca3af;margin-bottom:5px}
+  .modal input{width:100%}
+  .modal .modal-btns{display:flex;gap:10px;margin-top:20px}
+  .modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:#6b7280;font-size:20px;cursor:pointer}
+  .modal-close:hover{color:#fff}
+
+  .loader{text-align:center;padding:40px;color:#6b7280}
+  .empty{text-align:center;padding:40px;color:#6b7280}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:20px;right:20px;background:#1a1a2e;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 18px;font-size:14px;color:#fff;z-index:999;transform:translateY(80px);opacity:0;transition:.3s;max-width:320px}
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast.ok{border-color:rgba(16,185,129,.4);color:#6ee7b7}
+  .toast.err{border-color:rgba(239,68,68,.4);color:#f87171}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage">
+  <div class="login-box">
+    <h1>⚽ Admin</h1>
+    <p>Coupe du Monde 2026</p>
+    <input type="password" id="adminPass" placeholder="Mot de passe admin" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn btn-yellow btn-full" style="margin-top:10px" onclick="doLogin()">Connexion</button>
+    <div id="loginErr" class="msg error"></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="adminPage" style="display:none">
+  <nav>
+    <div class="nav-logo">⚽ CdM 2026</div>
+    <span class="admin-badge">🔧 Admin</span>
+  </nav>
+  <main>
+    <!-- Stats globales -->
+    <div class="stats-row" id="globalStats"></div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('matches')">⚽ Matchs</button>
+      <button class="tab" onclick="showTab('players')">👥 Joueurs</button>
+    </div>
+
+    <!-- ═══ MATCHS ═══ -->
+    <div id="tab-matches">
+      <div class="section">
+        <h2>🔄 Synchronisation automatique</h2>
+        <div class="sync-row">
+          <button class="btn btn-yellow" onclick="syncAll()">🔄 Sync matchs + résultats (TheSportsDB)</button>
+          <span id="syncResult" class="sync-result"></span>
+        </div>
+        <p style="color:#6b7280;font-size:12px;margin-top:10px">⏱ Sync automatique toutes les 30 min. Les points se calculent seuls quand un match se termine.</p>
+      </div>
+
+      <div class="section">
+        <h2>➕ Ajouter un match manuellement</h2>
+        <div class="add-form">
+          <div>
+            <label style="font-size:12px;color:#6b7280;display:block;margin-bottom:5px">Équipe domicile</label>
+            <input type="text" id="addHome" placeholder="ex: France" list="teams-dl" style="width:100%">
+          </div>
+          <div>
+            <label style="font-size:12px;color:#6b7280;display:block;margin-bottom:5px">Équipe extérieur</label>
+            <input type="text" id="addAway" placeholder="ex: Maroc" list="teams-dl" style="width:100%">
+          </div>
+          <div>
+            <label style="font-size:12px;color:#6b7280;display:block;margin-bottom:5px">Date & heure</label>
+            <input type="datetime-local" id="addDate" style="width:100%">
+          </div>
+          <div>
+            <label style="font-size:12px;color:#6b7280;display:block;margin-bottom:5px">Phase</label>
+            <input type="text" id="addStage" placeholder="ex: Groupe A" list="stages-dl" style="width:100%">
+          </div>
+          <button class="btn btn-yellow" onclick="addMatch()">Ajouter</button>
+        </div>
+        <datalist id="teams-dl">
+          <option value="Canada"><option value="Bosnie"><option value="France"><option value="Maroc">
+          <option value="Argentine"><option value="Brésil"><option value="Espagne"><option value="Allemagne">
+          <option value="Angleterre"><option value="Portugal"><option value="Mexique"><option value="États-Unis">
+          <option value="Pays-Bas"><option value="Belgique"><option value="Croatie"><option value="Sénégal">
+          <option value="Japon"><option value="Corée du Sud"><option value="Suisse"><option value="Uruguay">
+          <option value="Turquie"><option value="Danemark"><option value="Italie"><option value="Serbie">
+          <option value="Algérie"><option value="Nigeria"><option value="Cameroun"><option value="Égypte">
+        </datalist>
+        <datalist id="stages-dl">
+          <option value="Groupe A"><option value="Groupe B"><option value="Groupe C"><option value="Groupe D">
+          <option value="Groupe E"><option value="Groupe F"><option value="Groupe G"><option value="Groupe H">
+          <option value="Groupe I"><option value="Groupe J"><option value="Groupe K"><option value="Groupe L">
+          <option value="Huitièmes de finale"><option value="Quarts de finale">
+          <option value="Demi-finales"><option value="Finale">
+        </datalist>
+        <div id="addMatchMsg" class="msg"></div>
+      </div>
+
+      <div class="section">
+        <h2>📋 Liste des matchs</h2>
+        <div class="tbl-wrap" id="matchesTable"><div class="loader">Chargement...</div></div>
+      </div>
+    </div>
+
+    <!-- ═══ JOUEURS ═══ -->
+    <div id="tab-players" style="display:none">
+      <div class="section">
+        <h2>👥 Joueurs inscrits</h2>
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+          <input type="text" id="searchPlayer" placeholder="🔍 Rechercher par pseudo ou email..." style="flex:1;min-width:200px" oninput="filterPlayers()">
+          <select id="filterVerified" onchange="filterPlayers()">
+            <option value="all">Tous</option>
+            <option value="1">Vérifiés</option>
+            <option value="0">Non vérifiés</option>
+          </select>
+        </div>
+        <div class="tbl-wrap" id="playersTable"><div class="loader">Chargement...</div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL PRONOSTICS JOUEUR -->
+<div class="modal-overlay" id="predsModal" style="align-items:flex-start;padding:20px;overflow-y:auto">
+  <div class="modal" style="max-width:700px;width:100%;margin:auto">
+    <button class="modal-close" onclick="closeModal('predsModal')">✕</button>
+    <h3 id="predsModalTitle">📋 Pronostics de ...</h3>
+    <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap" id="predsStats"></div>
+    <div id="predsContent"><div class="loader">Chargement...</div></div>
+  </div>
+</div>
+
+<!-- MODAL MODIFIER JOUEUR -->
+<div class="modal-overlay" id="editPlayerModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('editPlayerModal')">✕</button>
+    <h3>✏️ Modifier le joueur</h3>
+    <input type="hidden" id="editPlayerId">
+    <div class="form-group">
+      <label>Pseudo</label>
+      <input type="text" id="editPseudo">
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="editEmail">
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-yellow" style="flex:1" onclick="savePlayer()">Enregistrer</button>
+      <button class="btn btn-gray" onclick="closeModal('editPlayerModal')">Annuler</button>
+    </div>
+    <div id="editPlayerMsg" class="msg"></div>
+  </div>
+</div>
+
+<!-- MODAL CHANGER MOT DE PASSE -->
+<div class="modal-overlay" id="passwordModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('passwordModal')">✕</button>
+    <h3>🔑 Changer le mot de passe</h3>
+    <input type="hidden" id="pwdPlayerId">
+    <div class="form-group">
+      <label>Nouveau mot de passe</label>
+      <input type="text" id="newPassword" placeholder="Minimum 4 caractères">
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-yellow" style="flex:1" onclick="savePassword()">Changer</button>
+      <button class="btn btn-gray" onclick="closeModal('passwordModal')">Annuler</button>
+    </div>
+    <div id="pwdMsg" class="msg"></div>
+  </div>
+</div>
+
+<!-- MODAL MODIFIER MATCH -->
+<div class="modal-overlay" id="editMatchModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('editMatchModal')">✕</button>
+    <h3>✏️ Modifier le match</h3>
+    <input type="hidden" id="editMatchId">
+    <div class="form-group">
+      <label>Équipe domicile</label>
+      <input type="text" id="editMatchHome">
+    </div>
+    <div class="form-group">
+      <label>Équipe extérieur</label>
+      <input type="text" id="editMatchAway">
+    </div>
+    <div class="form-group">
+      <label>Date & heure</label>
+      <input type="datetime-local" id="editMatchDate">
+    </div>
+    <div class="form-group">
+      <label>Phase</label>
+      <input type="text" id="editMatchStage" list="stages-dl">
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-yellow" style="flex:1" onclick="saveMatch()">Enregistrer</button>
+      <button class="btn btn-gray" onclick="closeModal('editMatchModal')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let adminPassword = '';
+  let allPlayers = [];
+
+  // ─── AUTH ───
+  function doLogin() {
+    const pass = document.getElementById('adminPass').value;
+    if (!pass) return;
+    adminPassword = pass;
+    testAuth();
+  }
+
+  async function testAuth() {
+    const r = await fetch('/api/admin/stats', { headers: h() });
+    if (r.status === 401) {
+      const el = document.getElementById('loginErr');
+      el.textContent = 'Mot de passe incorrect'; el.style.display = 'block';
+      return;
+    }
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('adminPage').style.display = 'block';
+    loadAll();
+  }
+
+  function h() { return { 'x-admin-password': adminPassword, 'Content-Type': 'application/json' }; }
+
+  // ─── TABS ───
+  function showTab(tab) {
+    document.getElementById('tab-matches').style.display = tab === 'matches' ? 'block' : 'none';
+    document.getElementById('tab-players').style.display = tab === 'players' ? 'block' : 'none';
+    document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', (tab==='matches'&&i===0)||(tab==='players'&&i===1)));
+    if (tab === 'players') loadPlayers();
+    if (tab === 'matches') loadMatches();
+  }
+
+  // ─── TOAST ───
+  function toast(msg, type='ok') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = `toast show ${type}`;
+    setTimeout(() => t.className = 'toast', 3500);
+  }
+
+  function showMsg(id, msg, type) {
+    const el = document.getElementById(id);
+    el.textContent = msg; el.className = `msg ${type}`; el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', 4000);
+  }
+
+  // ─── MODAL ───
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  // ─── LOAD ALL ───
+  async function loadAll() {
+    loadStats();
+    loadMatches();
+  }
+
+  // ─── STATS ───
+  async function loadStats() {
+    const r = await fetch('/api/admin/stats', { headers: h() });
+    const d = await r.json();
+    document.getElementById('globalStats').innerHTML = `
+      <div class="s-card"><div class="s-val">${d.total_players}</div><div class="s-lbl">Joueurs</div></div>
+      <div class="s-card"><div class="s-val">${d.total_matches}</div><div class="s-lbl">Matchs</div></div>
+      <div class="s-card"><div class="s-val">${d.finished_matches}</div><div class="s-lbl">Terminés</div></div>
+      <div class="s-card"><div class="s-val">${d.total_predictions}</div><div class="s-lbl">Pronostics</div></div>
+    `;
+  }
+
+  // ─── SYNC ───
+  async function syncAll() {
+    const btn = event.target; btn.disabled = true; btn.textContent = '⏳ Synchronisation...';
+    const r = await fetch('/api/admin/sync-all', { method: 'POST', headers: h() });
+    const d = await r.json();
+    const el = document.getElementById('syncResult');
+    el.textContent = r.ok ? '✅ ' + d.message : '❌ ' + (d.error || 'Erreur');
+    el.style.display = 'inline-block';
+    if (r.ok) { loadMatches(); loadStats(); setTimeout(() => el.style.display = 'none', 6000); }
+    btn.disabled = false; btn.textContent = '🔄 Sync matchs + résultats (TheSportsDB)';
+  }
+
+  // ─── MATCHES ───
+  async function loadMatches() {
+    const r = await fetch('/api/admin/matches', { headers: h() });
+    const matches = await r.json();
+    const el = document.getElementById('matchesTable');
+    if (!matches.length) { el.innerHTML = '<div class="empty">Aucun match. Cliquez sur Sync pour importer.</div>'; return; }
+
+    el.innerHTML = `<table>
+      <thead><tr><th>Match</th><th>Date</th><th>Phase</th><th>Statut</th><th>Score</th><th>Actions</th></tr></thead>
+      <tbody>${matches.map(m => {
+        const d = new Date(m.match_date * 1000);
+        const dateStr = d.toLocaleDateString('fr-FR', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+        const isLive = ['1H','2H','HT','ET','PEN'].includes(m.status);
+        const isFT = m.status === 'FT';
+        const badgeClass = isFT ? 'badge-ft' : isLive ? 'badge-live' : 'badge-ns';
+        const statusLabel = isFT ? 'Terminé' : isLive ? '🔴 En direct' : 'À venir';
+        const hasScore = m.home_score !== null;
+
+        return `<tr>
+          <td><strong>${m.home_team}</strong> <span style="color:#6b7280">vs</span> <strong>${m.away_team}</strong></td>
+          <td style="color:#9ca3af">${dateStr}</td>
+          <td style="color:#9ca3af">${m.stage}</td>
+          <td><span class="badge ${badgeClass}">${statusLabel}</span></td>
+          <td>
+            ${hasScore
+              ? `<strong style="color:#f59e0b;font-size:16px">${m.home_score} — ${m.away_score}</strong>`
+              : `<input class="mini-inp" type="number" min="0" id="sh_${m.id}" value="0">
+                 <span style="color:#6b7280;margin:0 4px">—</span>
+                 <input class="mini-inp" type="number" min="0" id="sa_${m.id}" value="0">`
+            }
+          </td>
+          <td><div class="actions">
+            ${!hasScore ? `<button class="btn btn-green btn-sm" onclick="setResult(${m.id})">✅ Valider score</button>` : ''}
+            ${hasScore ? `<button class="btn btn-gray btn-sm" onclick="resetResult(${m.id})">↩️ Réinit.</button>` : ''}
+            <button class="btn btn-blue btn-sm" onclick="openEditMatch(${m.id},'${m.home_team}','${m.away_team}',${m.match_date},'${m.stage}')">✏️</button>
+            <button class="btn btn-red btn-sm" onclick="deleteMatch(${m.id})">🗑</button>
+          </div></td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`;
+  }
+
+  async function addMatch() {
+    const home = document.getElementById('addHome').value.trim();
+    const away = document.getElementById('addAway').value.trim();
+    const date = document.getElementById('addDate').value;
+    const stage = document.getElementById('addStage').value.trim();
+    if (!home || !away || !date) return showMsg('addMatchMsg', 'Remplis les champs obligatoires', 'error');
+    const r = await fetch('/api/admin/add-match', { method:'POST', headers:h(), body:JSON.stringify({home_team:home,away_team:away,match_date:date,stage}) });
+    const d = await r.json();
+    if (r.ok) {
+      toast('Match ajouté !'); loadMatches(); loadStats();
+      ['addHome','addAway','addDate','addStage'].forEach(id => document.getElementById(id).value = '');
+    } else showMsg('addMatchMsg', d.error, 'error');
+  }
+
+  async function setResult(matchId) {
+    const h_val = document.getElementById(`sh_${matchId}`)?.value;
+    const a_val = document.getElementById(`sa_${matchId}`)?.value;
+    if (h_val === '' || a_val === '') return toast('Entre les deux scores', 'err');
+    const r = await fetch('/api/admin/set-result', { method:'POST', headers:h(), body:JSON.stringify({match_id:matchId,home_score:h_val,away_score:a_val}) });
+    const d = await r.json();
+    if (r.ok) { toast(d.message); loadMatches(); loadStats(); loadPlayers(); }
+    else toast(d.error, 'err');
+  }
+
+  async function resetResult(matchId) {
+    if (!confirm('Réinitialiser ce résultat ?')) return;
+    const r = await fetch('/api/admin/reset-result', { method:'POST', headers:h(), body:JSON.stringify({match_id:matchId}) });
+    const d = await r.json();
+    if (r.ok) { toast(d.message); loadMatches(); }
+    else toast(d.error, 'err');
+  }
+
+  async function deleteMatch(matchId) {
+    if (!confirm('Supprimer ce match et tous ses pronostics ?')) return;
+    const r = await fetch(`/api/admin/matches/${matchId}`, { method:'DELETE', headers:h() });
+    const d = await r.json();
+    if (r.ok) { toast(d.message); loadMatches(); loadStats(); }
+    else toast(d.error, 'err');
+  }
+
+  function openEditMatch(id, home, away, ts, stage) {
+    document.getElementById('editMatchId').value = id;
+    document.getElementById('editMatchHome').value = home;
+    document.getElementById('editMatchAway').value = away;
+    const dt = new Date(ts * 1000);
+    const local = new Date(dt - dt.getTimezoneOffset() * 60000).toISOString().slice(0,16);
+    document.getElementById('editMatchDate').value = local;
+    document.getElementById('editMatchStage').value = stage;
+    openModal('editMatchModal');
+  }
+
+  async function saveMatch() {
+    const id = document.getElementById('editMatchId').value;
+    const body = {
+      home_team: document.getElementById('editMatchHome').value,
+      away_team: document.getElementById('editMatchAway').value,
+      match_date: document.getElementById('editMatchDate').value,
+      stage: document.getElementById('editMatchStage').value
+    };
+    const r = await fetch(`/api/admin/matches/${id}`, { method:'PUT', headers:h(), body:JSON.stringify(body) });
+    const d = await r.json();
+    if (r.ok) { toast(d.message); closeModal('editMatchModal'); loadMatches(); }
+    else toast(d.error, 'err');
+  }
+
+  // ─── PLAYERS ───
+  async function loadPlayers() {
+    const r = await fetch('/api/admin/players', { headers: h() });
+    allPlayers = await r.json();
+    filterPlayers();
+  }
+
+  function filterPlayers() {
+    const search = document.getElementById('searchPlayer').value.toLowerCase();
+    const verif = document.getElementById('filterVerified').value;
+    let list = allPlayers.filter(p => {
+      const matchText = p.pseudo.toLowerCase().includes(search) || p.email.toLowerCase().includes(search);
+      const matchVerif = verif === 'all' || String(p.verified) === verif;
+      return matchText && matchVerif;
+    });
+    renderPlayers(list);
+  }
+
+  function renderPlayers(list) {
+    const el = document.getElementById('playersTable');
+    if (!list.length) { el.innerHTML = '<div class="empty">Aucun joueur trouvé</div>'; return; }
+
+    el.innerHTML = `<table>
+      <thead><tr><th>#</th><th>Pseudo</th><th>Email</th><th>Points</th><th>Pronostics</th><th>Statut</th><th>Code</th><th>Actions</th></tr></thead>
+      <tbody>${list.map((p, i) => `<tr>
+        <td style="color:#6b7280">${i+1}</td>
+        <td><strong>${p.pseudo}</strong></td>
+        <td style="color:#9ca3af">${p.email}</td>
+        <td style="color:#f59e0b;font-weight:700">${p.total_points} pts</td>
+        <td style="color:#9ca3af">${p.predictions_count}</td>
+        <td><span class="badge ${p.verified ? 'badge-ok' : 'badge-wait'}">${p.verified ? '✅ Vérifié' : '⏳ En attente'}</span></td>
+        <td style="color:#f59e0b;font-family:monospace;font-size:13px">${p.verify_code || '—'}</td>
+        <td><div class="actions">
+          <button class="btn btn-yellow btn-sm" onclick="viewPredictions(${p.id},'${p.pseudo}')">📋 Pronostics</button>
+          <button class="btn btn-blue btn-sm" onclick='openEditPlayer(${JSON.stringify(p)})'>✏️ Modifier</button>
+          <button class="btn btn-blue btn-sm" onclick="openPwdModal(${p.id})">🔑 MDP</button>
+          ${p.verified
+            ? `<button class="btn btn-gray btn-sm" onclick="unverifyPlayer(${p.id})">🚫 Dévérifier</button>`
+            : `<button class="btn btn-green btn-sm" onclick="verifyPlayer(${p.id})">✅ Vérifier</button>`}
+          <button class="btn btn-gray btn-sm" onclick="newCode(${p.id})">🔄 Nouveau code</button>
+          <button class="btn btn-gray btn-sm" onclick="resetPoints(${p.id}, '${p.pseudo}')">↩️ Points</button>
+          <button class="btn btn-red btn-sm" onclick="deletePlayer(${p.id}, '${p.pseudo}')">🗑 Supprimer</button>
+        </div></td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+  }
+
+  function openEditPlayer(p) {
+    document.getElementById('editPlayerId').value = p.id;
+    document.getElementById('editPseudo').value = p.pseudo;
+    document.getElementById('editEmail').value = p.email;
+    openModal('editPlayerModal');
+  }
+
+  async function savePlayer() {
+    const id = document.getElementById('editPlayerId').value;
+    const pseudo = document.getElementById('editPseudo').value.trim();
+    const email = document.getElementById('editEmail').value.trim();
+    const r = await fetch(`/api/admin/players/${id}`, { method:'PUT', headers:h(), body:JSON.stringify({pseudo,email}) });
+    const d = await r.json();
+    if (r.ok) { toast(d.message); closeModal('editPlayerModal'); loadPlayers(); }
+    else showMsg('editPlayerMsg', d.error, 'error');
+  }
+
+  function openPwdModal(id) {
+    document.getElementById('pwdPlayerId').value = id;
+    document.getElementById('newPassword').value = '';
+    openModal('passwordModal');
+  }
+
+  async function savePassword() {
+    const id = document.getElementById('pwdPlayerId').value;
+    const password = document.getElementById('newPassword').value;
+    const r = await fetch(`/api/admin/players/${id}/reset-password`, { method:'POST', headers:h(), body:JSON.stringify({password}) });
+    const d = await r.json();
+    if (r.ok) { toast(d.message); closeModal('passwordModal'); }
+    else showMsg('pwdMsg', d.error, 'error');
+  }
+
+  async function verifyPlayer(id) {
+    const r = await fetch(`/api/admin/players/${id}/verify`, { method:'POST', headers:h() });
+    const d = await r.json();
+    if (r.ok) { toast(d.message); loadPlayers(); loadStats(); }
+  }
+
+  async function unverifyPlayer(id) {
+    if (!confirm('Dévérifier ce compte ?')) return;
+    const r = await fetch(`/api/admin/players/${id}/unverify`, { method:'POST', headers:h() });
+    const d = await r.json();
+    if (r.ok) { toast(d.message); loadPlayers(); }
+  }
+
+  async function newCode(id) {
+    const r = await fetch(`/api/admin/players/${id}/new-code`, { method:'POST', headers:h() });
+    const d = await r.json();
+    if (r.ok) { toast(`Code : ${d.code} (${d.email})`); loadPlayers(); }
+  }
+
+  async function resetPoints(id, pseudo) {
+    if (!confirm(`Réinitialiser les points de ${pseudo} à 0 ?`)) return;
+    const r = await fetch(`/api/admin/players/${id}/reset-points`, { method:'POST', headers:h() });
+    const d = await r.json();
+    if (r.ok) { toast(d.message); loadPlayers(); loadStats(); }
+  }
+
+  async function deletePlayer(id, pseudo) {
+    if (!confirm(`Supprimer ${pseudo} et tous ses pronostics ? Cette action est irréversible.`)) return;
+    const r = await fetch(`/api/admin/players/${id}`, { method:'DELETE', headers:h() });
+    const d = await r.json();
+    if (r.ok) { toast(d.message); loadPlayers(); loadStats(); }
+    else toast(d.error, 'err');
+  }
+
+  async function viewPredictions(userId, pseudo) {
+    document.getElementById('predsModalTitle').textContent = `📋 Pronostics de ${pseudo}`;
+    document.getElementById('predsContent').innerHTML = '<div class="loader">Chargement...</div>';
+    document.getElementById('predsStats').innerHTML = '';
+    openModal('predsModal');
+
+    const r = await fetch(`/api/admin/players/${userId}/predictions`, { headers: h() });
+    const preds = await r.json();
+
+    if (!preds.length) {
+      document.getElementById('predsContent').innerHTML = '<div class="empty">Aucun pronostic pour ce joueur</div>';
+      return;
+    }
+
+    const total = preds.length;
+    const scored = preds.filter(p => p.points !== null);
+    const pts = scored.reduce((s, p) => s + p.points, 0);
+    const exact = scored.filter(p => p.points === 5).length;
+    const good = scored.filter(p => p.points === 2).length;
+    const wrong = scored.filter(p => p.points === 0).length;
+
+    document.getElementById('predsStats').innerHTML = `
+      <span style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:#f59e0b;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:700">${pts} pts total</span>
+      <span style="background:rgba(255,255,255,.05);color:#9ca3af;padding:6px 14px;border-radius:8px;font-size:13px">${total} pronostics</span>
+      <span style="background:rgba(245,158,11,.08);color:#f59e0b;padding:6px 14px;border-radius:8px;font-size:13px">🎯 ${exact} exacts</span>
+      <span style="background:rgba(16,185,129,.08);color:#6ee7b7;padding:6px 14px;border-radius:8px;font-size:13px">✅ ${good} bons résultats</span>
+      <span style="background:rgba(239,68,68,.08);color:#f87171;padding:6px 14px;border-radius:8px;font-size:13px">❌ ${wrong} ratés</span>
+    `;
+
+    document.getElementById('predsContent').innerHTML = `<table>
+      <thead><tr>
+        <th>Match</th><th>Phase</th><th>Date</th>
+        <th>Pronostic</th><th>Résultat réel</th><th>Points</th>
+      </tr></thead>
+      <tbody>${preds.map(p => {
+        const outcomeLabels = { H: `Victoire ${p.home_team}`, D: 'Nul', A: `Victoire ${p.away_team}` };
+        const predDisplay = p.pred_type === 'outcome'
+          ? `🏆 ${outcomeLabels[p.outcome] || p.outcome}`
+          : `🎯 ${p.home_score} — ${p.away_score}`;
+        const realDisplay = p.real_home !== null ? `${p.real_home} — ${p.real_away}` : '—';
+        const date = new Date(p.match_date * 1000).toLocaleDateString('fr-FR', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+        const isFT = p.status === 'FT';
+        let ptsBadge = '';
+        if (p.points === 5) ptsBadge = `<span class="badge" style="background:rgba(245,158,11,.2);color:#f59e0b;border:1px solid rgba(245,158,11,.4)">🎯 +5 pts</span>`;
+        else if (p.points === 2) ptsBadge = `<span class="badge" style="background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)">✅ +2 pts</span>`;
+        else if (p.points === 0) ptsBadge = `<span class="badge" style="background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2)">❌ 0 pt</span>`;
+        else ptsBadge = `<span class="badge badge-wait">⏳ En attente</span>`;
+        return `<tr>
+          <td><strong>${p.home_team}</strong> vs <strong>${p.away_team}</strong></td>
+          <td style="color:#9ca3af">${p.stage}</td>
+          <td style="color:#9ca3af">${date}</td>
+          <td>${predDisplay}</td>
+          <td style="color:${isFT?'#f59e0b':'#6b7280'};font-weight:${isFT?'700':'400'}">${realDisplay}</td>
+          <td>${ptsBadge}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`;
+  }
+
+  // Fermer modal en cliquant dehors
+  document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coupe du Monde 2026 — Pronostics</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{min-height:100vh;background:#0a0a0f;color:#fff;font-family:'Segoe UI',system-ui,sans-serif;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .bg{position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(245,158,11,.08) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(16,185,129,.06) 0%,transparent 60%);pointer-events:none}
+  .card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:44px 40px;width:100%;max-width:420px;position:relative;z-index:1}
+  .logo{text-align:center;margin-bottom:32px}
+  .logo .ball{font-size:52px;animation:spin 8s linear infinite}
+  @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  .logo h1{font-size:22px;font-weight:700;color:#f59e0b;margin-top:10px}
+  .logo p{color:#6b7280;font-size:13px;margin-top:4px}
+  .tabs{display:flex;background:rgba(255,255,255,.05);border-radius:10px;padding:4px;margin-bottom:28px;gap:4px}
+  .tab{flex:1;padding:10px;border:none;background:none;color:#9ca3af;cursor:pointer;border-radius:8px;font-size:14px;font-weight:500;transition:.2s}
+  .tab.active{background:#f59e0b;color:#000}
+  .form-group{margin-bottom:16px}
+  label{display:block;font-size:13px;color:#9ca3af;margin-bottom:6px;font-weight:500}
+  input{width:100%;padding:12px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:15px;outline:none;transition:.2s}
+  input:focus{border-color:#f59e0b;background:rgba(245,158,11,.06)}
+  input::placeholder{color:#4b5563}
+  .btn{width:100%;padding:14px;background:#f59e0b;color:#000;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:.2s;margin-top:8px}
+  .btn:hover{background:#d97706;transform:translateY(-1px)}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+  .btn-outline{background:transparent;border:1px solid rgba(255,255,255,.15);color:#9ca3af}
+  .btn-outline:hover{border-color:#f59e0b;color:#f59e0b;background:transparent}
+  .msg{padding:12px 16px;border-radius:10px;font-size:14px;margin-top:16px;display:none}
+  .msg.error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5}
+  .msg.success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:#6ee7b7}
+  .verify-box{display:none}
+  .verify-box .code-hint{text-align:center;color:#9ca3af;font-size:14px;margin-bottom:20px}
+  .verify-box .code-hint strong{color:#f59e0b}
+  .code-input{text-align:center;font-size:28px;letter-spacing:12px;font-weight:700}
+  .resend-link{text-align:center;margin-top:12px;font-size:13px;color:#6b7280}
+  .resend-link a{color:#f59e0b;cursor:pointer;text-decoration:none}
+  .resend-link a:hover{text-decoration:underline}
+  .separator{height:1px;background:rgba(255,255,255,.08);margin:20px 0;position:relative}
+  .separator span{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#0a0a0f;padding:0 12px;color:#6b7280;font-size:12px}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="card">
+  <div class="logo">
+    <div class="ball">⚽</div>
+    <h1>Coupe du Monde 2026</h1>
+    <p>Plateforme de Pronostics</p>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs" id="tabs">
+    <button class="tab active" onclick="switchTab('login')">Connexion</button>
+    <button class="tab" onclick="switchTab('register')">Inscription</button>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="loginForm">
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="ton@email.com">
+    </div>
+    <div class="form-group">
+      <label>Mot de passe</label>
+      <input type="password" id="loginPass" placeholder="••••••••">
+    </div>
+    <button class="btn" onclick="login()">Se connecter</button>
+    <div id="loginMsg" class="msg"></div>
+  </div>
+
+  <!-- REGISTER -->
+  <div id="registerForm" style="display:none">
+    <div class="form-group">
+      <label>Pseudo</label>
+      <input type="text" id="regPseudo" placeholder="MonPseudo">
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="regEmail" placeholder="ton@email.com">
+    </div>
+    <div class="form-group">
+      <label>Mot de passe</label>
+      <input type="password" id="regPass" placeholder="Minimum 6 caractères">
+    </div>
+    <button class="btn" onclick="register()">Créer mon compte</button>
+    <div id="registerMsg" class="msg"></div>
+  </div>
+
+  <!-- VERIFY -->
+  <div class="verify-box" id="verifyBox">
+    <div class="code-hint">Compte créé pour<br><strong id="verifyEmail"></strong></div>
+    <div id="devCodeHint" style="display:none;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.4);border-radius:10px;padding:14px;text-align:center;margin-bottom:16px">
+      <div style="font-size:11px;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Ton code de confirmation</div>
+      <div style="font-size:32px;font-weight:800;letter-spacing:10px;color:#f59e0b"><span></span></div>
+      <div style="font-size:11px;color:#6b7280;margin-top:6px">Il est déjà rempli ci-dessous</div>
+    </div>
+    <div class="form-group">
+      <input type="text" class="code-input" id="verifyCode" placeholder="000000" maxlength="6" inputmode="numeric">
+    </div>
+    <button class="btn" onclick="verify()">Confirmer mon compte</button>
+    <div class="resend-link">
+      Problème ? <a onclick="resendCode()">Générer un nouveau code</a>
+    </div>
+    <div id="verifyMsg" class="msg"></div>
+  </div>
+</div>
+
+<script>
+  let pendingEmail = '';
+
+  if (localStorage.getItem('wc_token')) window.location.href = '/dashboard.html';
+
+  function switchTab(tab) {
+    document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+    document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (tab==='login'&&i===0)||(tab==='register'&&i===1)));
+  }
+
+  function showMsg(id, msg, type) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.className = `msg ${type}`;
+    el.style.display = 'block';
+  }
+
+  async function login() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPass').value;
+    const btn = document.querySelector('#loginForm .btn');
+    btn.disabled = true; btn.textContent = 'Connexion...';
+    try {
+      const r = await fetch('/api/auth/login', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({email, password})
+      });
+      const d = await r.json();
+      if (!r.ok) {
+        if (d.needVerify) { pendingEmail = d.email; showVerify(); }
+        else showMsg('loginMsg', d.error, 'error');
+      } else {
+        localStorage.setItem('wc_token', d.token);
+        localStorage.setItem('wc_pseudo', d.pseudo);
+        window.location.href = '/dashboard.html';
+      }
+    } catch(e) { showMsg('loginMsg', 'Erreur serveur', 'error'); }
+    btn.disabled = false; btn.textContent = 'Se connecter';
+  }
+
+  async function register() {
+    const pseudo = document.getElementById('regPseudo').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPass').value;
+    if (!pseudo || !email || !password) return showMsg('registerMsg', 'Tous les champs sont requis', 'error');
+    if (password.length < 6) return showMsg('registerMsg', 'Mot de passe trop court (min 6)', 'error');
+    const btn = document.querySelector('#registerForm .btn');
+    btn.disabled = true; btn.textContent = 'Envoi...';
+    try {
+      const r = await fetch('/api/auth/register', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({pseudo, email, password})
+      });
+      const d = await r.json();
+      if (!r.ok) { showMsg('registerMsg', d.error, 'error'); }
+      else { pendingEmail = email; showVerify(d.code); }
+    } catch(e) { showMsg('registerMsg', 'Erreur serveur', 'error'); }
+    btn.disabled = false; btn.textContent = 'Créer mon compte';
+  }
+
+  function showVerify(code) {
+    document.getElementById('tabs').style.display = 'none';
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('verifyBox').style.display = 'block';
+    document.getElementById('verifyEmail').textContent = pendingEmail;
+    if (code) {
+      document.getElementById('verifyCode').value = code;
+      const hint = document.getElementById('devCodeHint');
+      if (hint) { hint.style.display = 'block'; hint.querySelector('span').textContent = code; }
+    }
+  }
+
+  async function verify() {
+    const code = document.getElementById('verifyCode').value.trim();
+    if (code.length !== 6) return showMsg('verifyMsg', 'Code à 6 chiffres requis', 'error');
+    const btn = document.querySelector('#verifyBox .btn');
+    btn.disabled = true; btn.textContent = 'Vérification...';
+    try {
+      const r = await fetch('/api/auth/verify', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({email: pendingEmail, code})
+      });
+      const d = await r.json();
+      if (!r.ok) { showMsg('verifyMsg', d.error, 'error'); }
+      else {
+        localStorage.setItem('wc_token', d.token);
+        localStorage.setItem('wc_pseudo', d.pseudo);
+        window.location.href = '/dashboard.html';
+      }
+    } catch(e) { showMsg('verifyMsg', 'Erreur serveur', 'error'); }
+    btn.disabled = false; btn.textContent = 'Confirmer mon compte';
+  }
+
+  async function resendCode() {
+    const r = await fetch('/api/auth/resend-code', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email: pendingEmail})
+    });
+    const d = await r.json();
+    if (d.code) {
+      document.getElementById('verifyCode').value = d.code;
+      const hint = document.getElementById('devCodeHint');
+      hint.style.display = 'block';
+      hint.querySelector('span').textContent = d.code;
+    }
+    showMsg('verifyMsg', 'Nouveau code généré !', 'success');
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      if (document.getElementById('verifyBox').style.display === 'block') verify();
+      else if (document.getElementById('loginForm').style.display !== 'none') login();
+      else register();
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "world-cup-predictor",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["/Users/ayoub/Desktop/world-cup-predictor/server.js"],
+      "port": 3001
+    }
+  ]
+}

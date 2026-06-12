@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Classement — CdM 2026</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{min-height:100vh;background:#0a0a0f;color:#fff;font-family:'Segoe UI',system-ui,sans-serif}
+  .bg{position:fixed;inset:0;background:radial-gradient(ellipse at 80% 0%,rgba(245,158,11,.06) 0%,transparent 50%);pointer-events:none;z-index:0}
+  nav{background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.07);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px)}
+  .nav-logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;color:#f59e0b}
+  .nav-links{display:flex;gap:4px}
+  .nav-link{padding:8px 16px;border-radius:8px;color:#9ca3af;cursor:pointer;font-size:14px;font-weight:500;text-decoration:none;transition:.2s}
+  .nav-link:hover,.nav-link.active{color:#fff;background:rgba(255,255,255,.07)}
+  .nav-right{display:flex;align-items:center;gap:12px}
+  .pseudo-badge{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:#f59e0b;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600}
+  .logout-btn{background:none;border:1px solid rgba(255,255,255,.12);color:#6b7280;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;transition:.2s}
+  .logout-btn:hover{border-color:rgba(239,68,68,.5);color:#f87171}
+  main{max-width:800px;margin:0 auto;padding:32px 24px;position:relative;z-index:1}
+  .page-title{font-size:24px;font-weight:800;margin-bottom:8px}
+  .page-sub{color:#6b7280;font-size:14px;margin-bottom:32px}
+
+  /* PODIUM */
+  .podium{display:flex;align-items:flex-end;justify-content:center;gap:12px;margin-bottom:40px;min-height:160px}
+  .podium-item{flex:1;max-width:180px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .podium-block{width:100%;border-radius:12px 12px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:16px 8px 20px}
+  .podium-block.p1{background:linear-gradient(180deg,rgba(245,158,11,.3),rgba(245,158,11,.1));border:1px solid rgba(245,158,11,.4);height:140px}
+  .podium-block.p2{background:linear-gradient(180deg,rgba(156,163,175,.2),rgba(156,163,175,.05));border:1px solid rgba(156,163,175,.3);height:110px}
+  .podium-block.p3{background:linear-gradient(180deg,rgba(180,120,60,.2),rgba(180,120,60,.05));border:1px solid rgba(180,120,60,.3);height:90px}
+  .podium-crown{font-size:28px;margin-bottom:4px}
+  .podium-pts{font-size:20px;font-weight:800;color:#f59e0b}
+  .podium-pts.silver{color:#9ca3af}
+  .podium-pts.bronze{color:#b4783c}
+  .podium-pseudo{font-size:13px;color:#d1d5db;font-weight:600;margin-top:4px;word-break:break-word}
+  .podium-pos{font-size:11px;color:#6b7280;margin-top:2px}
+
+  /* TABLE */
+  .lb-table{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;overflow:hidden}
+  .lb-row{display:grid;grid-template-columns:52px 1fr 80px 80px 80px;align-items:center;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);transition:.15s}
+  .lb-row:last-child{border-bottom:none}
+  .lb-row:hover{background:rgba(255,255,255,.03)}
+  .lb-row.me{background:rgba(245,158,11,.06);border-left:3px solid #f59e0b}
+  .lb-row.header{color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:10px 20px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .rank-num{font-size:18px;font-weight:800;color:#6b7280;text-align:center}
+  .rank-1{color:#f59e0b}
+  .rank-2{color:#9ca3af}
+  .rank-3{color:#b4783c}
+  .player-name{font-weight:600;font-size:15px}
+  .player-name.me-label::after{content:' (moi)';color:#f59e0b;font-size:12px;font-weight:400}
+  .cell-pts{font-size:18px;font-weight:800;color:#f59e0b;text-align:center}
+  .cell{text-align:center;color:#6b7280;font-size:14px}
+  .empty{text-align:center;padding:60px;color:#6b7280}
+  .empty .icon{font-size:40px;margin-bottom:12px}
+  .loader{text-align:center;padding:60px;color:#6b7280}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<nav>
+  <div class="nav-logo">⚽ CdM 2026</div>
+  <div class="nav-links">
+    <a class="nav-link" href="/dashboard.html">Pronostics</a>
+    <a class="nav-link active" href="/leaderboard.html">Classement</a>
+  </div>
+  <div class="nav-right">
+    <span class="pseudo-badge" id="pseudoBadge">...</span>
+    <button class="logout-btn" onclick="logout()">Déconnexion</button>
+  </div>
+</nav>
+
+<main>
+  <div class="page-title">🏆 Classement</div>
+  <div class="page-sub">Mis à jour automatiquement après chaque match</div>
+
+  <div class="podium" id="podium"></div>
+
+  <div class="lb-table">
+    <div class="lb-row header">
+      <div>Rang</div><div>Joueur</div>
+      <div style="text-align:center">Points</div>
+      <div style="text-align:center">🎯 Exacts</div>
+      <div style="text-align:center">✅ Gagnants</div>
+    </div>
+    <div id="leaderboard"><div class="loader">Chargement...</div></div>
+  </div>
+</main>
+
+<script>
+  const token = localStorage.getItem('wc_token');
+  if (!token) window.location.href = '/';
+  const myPseudo = localStorage.getItem('wc_pseudo');
+  document.getElementById('pseudoBadge').textContent = myPseudo || '';
+
+  function logout() {
+    localStorage.removeItem('wc_token');
+    localStorage.removeItem('wc_pseudo');
+    window.location.href = '/';
+  }
+
+  async function load() {
+    const r = await fetch('/api/leaderboard', { headers: { Authorization: `Bearer ${token}` } });
+    if (r.status === 401) { logout(); return; }
+    const players = await r.json();
+
+    // Podium (top 3)
+    const podium = document.getElementById('podium');
+    if (players.length === 0) {
+      podium.innerHTML = '';
+    } else {
+      const top = [players[1], players[0], players[2]].filter(Boolean);
+      const crowns = ['🥈', '🥇', '🥉'];
+      const classes = ['p2', 'p1', 'p3'];
+      const ptClasses = ['silver', '', 'bronze'];
+      podium.innerHTML = top.map((p, i) => `
+        <div class="podium-item">
+          <div class="podium-pseudo">${p.pseudo}</div>
+          <div class="podium-block ${classes[i]}">
+            <div class="podium-crown">${crowns[i]}</div>
+            <div class="podium-pts ${ptClasses[i]}">${p.total_points} pts</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Table
+    const lb = document.getElementById('leaderboard');
+    if (players.length === 0) {
+      lb.innerHTML = `<div class="empty"><div class="icon">👥</div><p>Aucun joueur inscrit pour l'instant</p></div>`;
+      return;
+    }
+
+    lb.innerHTML = players.map(p => {
+      const isMe = p.pseudo === myPseudo;
+      const rankClass = p.rank === 1 ? 'rank-1' : p.rank === 2 ? 'rank-2' : p.rank === 3 ? 'rank-3' : '';
+      return `
+        <div class="lb-row ${isMe ? 'me' : ''}">
+          <div class="rank-num ${rankClass}">${p.rank <= 3 ? ['🥇','🥈','🥉'][p.rank-1] : p.rank}</div>
+          <div class="player-name ${isMe ? 'me-label' : ''}">${p.pseudo}</div>
+          <div class="cell-pts">${p.total_points}</div>
+          <div class="cell">${p.exact_scores || 0}</div>
+          <div class="cell">${p.good_winners || 0}</div>
+        </div>`;
+    }).join('');
+  }
+
+  load();
+  setInterval(load, 30000);
+</script>
+</body>
+</html>

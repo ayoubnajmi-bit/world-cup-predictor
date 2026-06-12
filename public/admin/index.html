@@ -428,10 +428,11 @@
   }
 
   async function setResult(matchId) {
-    const h_val = document.getElementById(`sh_${matchId}`)?.value;
-    const a_val = document.getElementById(`sa_${matchId}`)?.value;
-    if (h_val === '' || a_val === '') return toast('Entre les deux scores', 'err');
-    const r = await fetch('/api/admin/set-result', { method:'POST', headers:h(), body:JSON.stringify({match_id:matchId,home_score:h_val,away_score:a_val}) });
+    const h_el = document.getElementById(`sh_${matchId}`);
+    const a_el = document.getElementById(`sa_${matchId}`);
+    const home_score = h_el?.value !== '' ? parseInt(h_el.value) : 0;
+    const away_score = a_el?.value !== '' ? parseInt(a_el.value) : 0;
+    const r = await fetch('/api/admin/set-result', { method:'POST', headers:h(), body:JSON.stringify({match_id:matchId,home_score,away_score}) });
     const d = await r.json();
     if (r.ok) { toast(d.message); loadMatches(); loadStats(); loadPlayers(); }
     else toast(d.error, 'err');
